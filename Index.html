@@ -1902,6 +1902,8 @@ let timerInterval = null;
 let finalCPS = 0;
 let bestCPS = parseFloat(localStorage.getItem('bestCPS') || '0');
 let submitted = false;
+let lastSubmitTime = 0;
+const SUBMIT_COOLDOWN_MS = 30000; // 30 seconds between submissions
 
 const cpsDisplay = document.getElementById('cps-display');
 const totalClicksEl = document.getElementById('total-clicks');
@@ -2110,6 +2112,7 @@ function resetGame() {
   testRunning = false;
   clicks = 0;
   finalCPS = 0;
+  submitted = false; // allow submission on next game (cooldown still applies)
   clearInterval(timerInterval);
 
   cpsDisplay.textContent = '0.00';
@@ -2214,6 +2217,25 @@ async function loadLeaderboard() {
   }
 }
 
+// ====== PROFANITY FILTER ======
+const BANNED = [
+  'nigger','nigga','faggot','fag','chink','spic','kike','tranny','retard',
+  'cunt','whore','slut','bitch','bastard','asshole','motherfucker','fucker',
+  'fuck','shit','cock','dick','pussy','piss','twat','wanker','dyke','coon',
+  'cracker','wetback','gook','beaner','raghead','towelhead','zipperhead',
+  'nazi','hitler','kkk','rape','rapist','pedo','pedophile','nonce'
+];
+
+function containsProfanity(str) {
+  const clean = str.toLowerCase().replace(/[^a-z0-9]/g, '');
+  // Check exact words and also leet-speak substitutions
+  const normalized = clean
+    .replace(/0/g,'o').replace(/1/g,'i').replace(/3/g,'e')
+    .replace(/4/g,'a').replace(/5/g,'s').replace(/\$/g,'s')
+    .replace(/8/g,'b').replace(/@/g,'a');
+  return BANNED.some(word => clean.includes(word) || normalized.includes(word));
+}
+
 async function submitScore() {
   if (submitted) return;
   const name = document.getElementById('modal-player-name').value.trim();
@@ -2224,10 +2246,28 @@ async function submitScore() {
   }
   if (finalCPS <= 0) return;
 
+  // 30-second cooldown between submissions
+  const now = Date.now();
+  const secondsLeft = Math.ceil((SUBMIT_COOLDOWN_MS - (now - lastSubmitTime)) / 1000);
+  if (lastSubmitTime > 0 && secondsLeft > 0) {
+    document.getElementById('modal-result-msg').textContent = `⏳ Please wait ${secondsLeft}s before submitting again.`;
+    document.getElementById('modal-result-msg').style.color = 'var(--accent3)';
+    return;
+  }
+
+  // Profanity check
+  if (containsProfanity(name)) {
+    document.getElementById('modal-result-msg').textContent = '⚠ Name contains banned words. Please choose another.';
+    document.getElementById('modal-result-msg').style.color = 'var(--accent3)';
+    document.getElementById('modal-player-name').focus();
+    return;
+  }
+
   const btn = document.getElementById('modal-submit-btn');
   btn.disabled = true;
   btn.textContent = 'Submitting...';
   document.getElementById('modal-result-msg').textContent = '';
+  document.getElementById('modal-result-msg').style.color = 'var(--accent2)';
 
   try {
     const weekStart = Timestamp.fromDate(getWeekStart());
@@ -2237,7 +2277,7 @@ async function submitScore() {
       duration: duration,
       date: new Date().toISOString().split('T')[0],
       weekStart: weekStart,
-      weekKey: getWeekStart().toISOString().split('T')[0], // e.g. "2026-02-23" — simple string fallback
+      weekKey: getWeekStart().toISOString().split('T')[0],
       ts: Timestamp.now()
     };
     console.log('Submitting score:', docData);
@@ -2245,6 +2285,7 @@ async function submitScore() {
     console.log('Score saved with ID:', docRef.id);
 
     submitted = true;
+    lastSubmitTime = Date.now();
     btn.textContent = '✓ Submitted!';
 
     const entries = await loadLeaderboard();
