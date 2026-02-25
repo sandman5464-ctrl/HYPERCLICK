@@ -2529,6 +2529,25 @@ loadLeaderboard(5);
 setInterval(() => loadLeaderboard(), 15000);
 
 // ====== BUTTON RIPPLE EFFECT ======
+function playUISound() {
+  if (!audioCtx || !sfxGain || !settings.sfx) return;
+  try {
+    const now = audioCtx.currentTime;
+    // Softer, higher UI tap — shorter and more subtle than the game click
+    const osc = audioCtx.createOscillator();
+    const g = audioCtx.createGain();
+    osc.type = 'sine';
+    osc.frequency.setValueAtTime(900, now);
+    osc.frequency.exponentialRampToValueAtTime(500, now + 0.06);
+    g.gain.setValueAtTime(0.25, now);
+    g.gain.exponentialRampToValueAtTime(0.001, now + 0.09);
+    osc.connect(g);
+    g.connect(sfxGain);
+    osc.start(now);
+    osc.stop(now + 0.1);
+  } catch(e) {}
+}
+
 function addRipple(e, el, colorClass) {
   const rect = el.getBoundingClientRect();
   const size = Math.max(rect.width, rect.height);
@@ -2552,6 +2571,7 @@ function initRipples() {
     document.querySelectorAll(sel).forEach(el => {
       el.classList.add('btn-ripple-wrap');
       el.addEventListener('click', e => {
+        playUISound();
         const isAccent2 = el.classList.contains('mode-btn') || el.classList.contains('lb-tab');
         addRipple(e, el, isAccent2 ? '' : 'ripple-purple');
       });
@@ -2722,6 +2742,8 @@ function startGame() {
   ss.classList.add('fade-out');
   setTimeout(() => { ss.style.display = 'none'; }, 800);
   initAudio();
+  // Play a launch sound immediately after audio context is created
+  setTimeout(() => playUISound(), 50);
 }
 
 // ====== AUDIO ENGINE (Web Audio API — no external files) ======
