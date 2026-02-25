@@ -992,6 +992,63 @@
     text-transform: uppercase;
     margin-bottom: 12px;
   }
+
+  /* Donation goal bar */
+  .donate-goal {
+    background: rgba(184,69,255,0.06);
+    border: 1px solid rgba(184,69,255,0.2);
+    border-radius: 10px;
+    padding: 14px 16px;
+    margin-bottom: 14px;
+  }
+  .donate-goal-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 8px;
+  }
+  .donate-goal-title {
+    font-family: 'Orbitron', monospace;
+    font-size: 10px;
+    letter-spacing: 3px;
+    color: var(--accent2);
+    text-transform: uppercase;
+  }
+  .donate-goal-amounts {
+    font-family: 'Orbitron', monospace;
+    font-size: 11px;
+    color: var(--text);
+  }
+  .donate-goal-amounts span {
+    color: var(--accent2);
+    font-weight: 700;
+  }
+  .donate-goal-bar-wrap {
+    width: 100%;
+    height: 6px;
+    background: rgba(184,69,255,0.12);
+    border-radius: 3px;
+    overflow: hidden;
+    margin-bottom: 6px;
+  }
+  .donate-goal-bar-fill {
+    height: 100%;
+    border-radius: 3px;
+    background: linear-gradient(90deg, var(--accent2), var(--accent3));
+    box-shadow: 0 0 10px rgba(184,69,255,0.5);
+    transition: width 1s cubic-bezier(0.4,0,0.2,1);
+    min-width: 2px;
+  }
+  .donate-goal-desc {
+    font-size: 10px;
+    letter-spacing: 1px;
+    color: var(--muted);
+    margin-top: 4px;
+  }
+  .donate-goal-desc strong {
+    color: var(--accent2);
+  }
+
   .modal-donate-amounts {
     display: flex;
     gap: 8px;
@@ -1774,6 +1831,18 @@
     <div class="modal-result-msg" id="modal-result-msg"></div>
     <div class="modal-donate-section">
       <div class="modal-donate-label">⚡ Enjoying HYPERCLICK? Support the dev</div>
+
+      <div class="donate-goal">
+        <div class="donate-goal-header">
+          <div class="donate-goal-title">🎯 Next Update Goal</div>
+          <div class="donate-goal-amounts">$<span id="goal-raised">0</span> / $100</div>
+        </div>
+        <div class="donate-goal-bar-wrap">
+          <div class="donate-goal-bar-fill" id="goal-bar" style="width:0%"></div>
+        </div>
+        <div class="donate-goal-desc">Help unlock <strong>v2.0</strong> — new game modes, themes & more</div>
+      </div>
+
       <div class="modal-donate-amounts">
         <a class="modal-donate-amt" href="https://paypal.me/sandy871983/1" target="_blank" rel="noopener">$1</a>
         <a class="modal-donate-amt" href="https://paypal.me/sandy871983/5" target="_blank" rel="noopener">$5</a>
@@ -2095,6 +2164,7 @@ function openModal(isNewBest) {
 
   const overlay = document.getElementById('modal-overlay');
   overlay.classList.add('open');
+  updateGoalBar();
 
   // Focus name input after animation
   setTimeout(() => {
@@ -2356,6 +2426,22 @@ function renderLeaderboard(entries) {
       </div>
     `;
   }).join('');
+}
+
+// ====== DONATION GOAL ======
+const GOAL_TARGET = 100;
+// Manually update this number when you receive donations via PayPal
+// (PayPal doesn't have an automatic API for this in a plain HTML file)
+const GOAL_RAISED = 0; // <-- UPDATE THIS as donations come in e.g. 25.50
+
+function updateGoalBar() {
+  const pct = Math.min((GOAL_RAISED / GOAL_TARGET) * 100, 100);
+  const raisedEl = document.getElementById('goal-raised');
+  const barEl = document.getElementById('goal-bar');
+  if (!raisedEl || !barEl) return;
+  raisedEl.textContent = GOAL_RAISED.toFixed(0);
+  // Animate bar after short delay so CSS transition fires
+  setTimeout(() => { barEl.style.width = pct + '%'; }, 100);
 }
 
 // Auto-refresh leaderboard every 15s
