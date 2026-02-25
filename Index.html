@@ -1793,7 +1793,7 @@
   </a>
 </div>
 
-<script>
+<script type="module">
 // ====== BACKGROUND CANVAS ======
 const canvas = document.getElementById('bg-canvas');
 const ctx = canvas.getContext('2d');
@@ -2166,25 +2166,48 @@ setInterval(updateCountdown, 1000);
 updateCountdown();
 
 // ====== LEADERBOARD (Persistent Storage) ======
-const LB_KEY = 'leaderboard-data';
-const SHARED = true;
+// ====== FIREBASE LEADERBOARD ======
+import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
+import { getFirestore, collection, addDoc, query, where, orderBy, limit, getDocs, Timestamp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
 
-function getWeekKey() {
-  const d = new Date();
-  const jan1 = new Date(Date.UTC(d.getUTCFullYear(), 0, 1));
-  const week = Math.ceil(((d - jan1) / 86400000 + 1) / 7);
-  return `${d.getUTCFullYear()}-W${week}-v2`;
+const firebaseConfig = {
+  apiKey: "AIzaSyBp9KgjoTtCCugMlNNkJ8ehr3tW0pqNM64",
+  authDomain: "hyperlink-4122b.firebaseapp.com",
+  projectId: "hyperlink-4122b",
+  storageBucket: "hyperlink-4122b.firebasestorage.app",
+  messagingSenderId: "808238225185",
+  appId: "1:808238225185:web:7d80e269d1c93c50e5d060",
+  measurementId: "G-DD08P4G7S9"
+};
+
+const fbApp = initializeApp(firebaseConfig);
+const db = getFirestore(fbApp);
+
+function getWeekStart() {
+  const now = new Date();
+  const day = now.getUTCDay(); // 0=Sun,1=Mon
+  const diff = (day === 0 ? -6 : 1 - day);
+  const monday = new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), now.getUTCDate() + diff));
+  monday.setUTCHours(0,0,0,0);
+  return monday;
 }
 
 async function loadLeaderboard() {
-  const weekKey = getWeekKey();
-  const storageKey = `leaderboard-${weekKey}`;
   try {
-    const result = await window.storage.get(storageKey, SHARED);
-    const entries = result ? JSON.parse(result.value) : [];
+    const weekStart = Timestamp.fromDate(getWeekStart());
+    const q = query(
+      collection(db, 'scores'),
+      where('weekStart', '>=', weekStart),
+      orderBy('weekStart', 'desc'),
+      orderBy('cps', 'desc'),
+      limit(50)
+    );
+    const snap = await getDocs(q);
+    const entries = snap.docs.map(d => d.data());
     renderLeaderboard(entries);
     return entries;
-  } catch {
+  } catch(err) {
+    console.error('Load error:', err);
     renderLeaderboard([]);
     return [];
   }
@@ -2205,33 +2228,31 @@ async function submitScore() {
   btn.textContent = 'Submitting...';
   document.getElementById('modal-result-msg').textContent = '';
 
-  const weekKey = getWeekKey();
-  const storageKey = `leaderboard-${weekKey}`;
-
   try {
-    let entries = await loadLeaderboard();
-    const newEntry = {
+    const weekStart = Timestamp.fromDate(getWeekStart());
+    await addDoc(collection(db, 'scores'), {
       name: name.toUpperCase().substring(0, 20),
       cps: Math.round(finalCPS * 100) / 100,
       duration: duration,
       date: new Date().toISOString().split('T')[0],
-      ts: Date.now()
-    };
-
-    entries.push(newEntry);
-    entries.sort((a,b) => b.cps - a.cps);
-    entries = entries.slice(0, 50);
-
-    await window.storage.set(storageKey, JSON.stringify(entries), SHARED);
-    renderLeaderboard(entries);
-
-    const rank = entries.findIndex(e => e.ts === newEntry.ts) + 1;
-    document.getElementById('modal-result-msg').textContent =
-      rank <= 3 ? `🔥 RANK #${rank} — INCREDIBLE!` : `You're ranked #${rank} this week!`;
+      weekStart: weekStart,
+      ts: Timestamp.now()
+    });
 
     submitted = true;
     btn.textContent = '✓ Submitted!';
-  } catch (err) {
+
+    // Reload leaderboard to get rank
+    const entries = await loadLeaderboard();
+    const rank = entries.findIndex(e =>
+      e.name === name.toUpperCase().substring(0,20) &&
+      e.cps === Math.round(finalCPS * 100) / 100
+    ) + 1;
+    document.getElementById('modal-result-msg').textContent =
+      rank <= 3 ? `🔥 RANK #${rank} — INCREDIBLE!` : rank > 0 ? `You're ranked #${rank} this week!` : `Score submitted!`;
+
+  } catch(err) {
+    console.error('Submit error:', err);
     document.getElementById('modal-result-msg').textContent = 'Error submitting. Try again.';
     btn.disabled = false;
     btn.textContent = 'Submit Score';
@@ -2271,6 +2292,14 @@ function renderLeaderboard(entries) {
 // Auto-refresh leaderboard every 15s
 loadLeaderboard();
 setInterval(loadLeaderboard, 15000);
+
+// Expose functions to global scope (required because type="module" is scoped)
+window.startGame = startGame;
+window.toggleSettings = toggleSettings;
+window.closeSettingsOutside = closeSettingsOutside;
+window.settingToggle = settingToggle;
+window.submitScore = submitScore;
+window.closeModalAndReset = closeModalAndReset;
 
 // ====== START SCREEN ======
 let gameStarted = false;
