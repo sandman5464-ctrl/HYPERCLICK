@@ -588,6 +588,38 @@
     text-align: center;
   }
 
+  /* Leaderboard tabs */
+  .lb-tabs {
+    display: flex;
+    border-bottom: 1px solid rgba(0,212,255,0.1);
+    background: rgba(0,0,0,0.2);
+    flex-shrink: 0;
+  }
+  .lb-tab {
+    flex: 1;
+    background: transparent;
+    border: none;
+    border-bottom: 2px solid transparent;
+    color: var(--muted);
+    font-family: 'Orbitron', monospace;
+    font-size: 11px;
+    letter-spacing: 1px;
+    padding: 12px 4px;
+    cursor: pointer !important;
+    transition: all 0.2s;
+    text-transform: uppercase;
+    margin-bottom: -1px;
+  }
+  .lb-tab:hover {
+    color: var(--text);
+    background: rgba(0,212,255,0.04);
+  }
+  .lb-tab.active {
+    color: var(--accent);
+    border-bottom-color: var(--accent);
+    background: rgba(0,212,255,0.06);
+  }
+
   .lb-reset-info {
     font-size: 10px;
     letter-spacing: 2px;
@@ -1789,6 +1821,13 @@
       <div class="lb-title"><span class="lb-live-dot"></span>Live Leaderboard</div>
       <div class="lb-subtitle">Daily Top Scores — Resets Every Midnight UTC</div>
     </div>
+    <div class="lb-tabs">
+      <button class="lb-tab active" data-dur="5">5s</button>
+      <button class="lb-tab" data-dur="10">10s</button>
+      <button class="lb-tab" data-dur="15">15s</button>
+      <button class="lb-tab" data-dur="30">30s</button>
+      <button class="lb-tab" data-dur="60">60s</button>
+    </div>
     <div class="lb-list" id="lb-list">
       <div class="lb-empty">Loading scores...</div>
     </div>
@@ -2145,6 +2184,12 @@ function endTest() {
   clickBtn.querySelector('.btn-icon').textContent = 'DONE';
   clickBtn.querySelector('.btn-hint').textContent = 'See Results';
 
+  // Switch leaderboard tab to match the duration just played
+  document.querySelectorAll('.lb-tab').forEach(t => {
+    t.classList.toggle('active', +t.dataset.dur === duration);
+  });
+  loadLeaderboard(duration);
+
   // Open modal after short delay so last click registers
   setTimeout(() => openModal(isNewBest), 300);
 }
@@ -2258,12 +2303,16 @@ function getDayKey() {
   return new Date().toISOString().split('T')[0];
 }
 
-async function loadLeaderboard() {
+let activeLbDuration = 5; // currently viewed leaderboard tab
+
+async function loadLeaderboard(dur) {
+  if (dur !== undefined) activeLbDuration = dur;
   try {
     const dayKey = getDayKey();
     const q = query(
       collection(db, 'scores'),
       where('dayKey', '==', dayKey),
+      where('duration', '==', activeLbDuration),
       limit(500)
     );
     const snap = await getDocs(q);
@@ -2352,10 +2401,10 @@ async function submitScore() {
       return;
     }
 
-    // Check if score is good enough to crack the top 100
-    const currentEntries = await loadLeaderboard();
+    // Check if score is good enough to crack the top 100 for this duration
+    const currentEntries = await loadLeaderboard(duration);
     if (currentEntries.length >= 100) {
-      const cutoff = currentEntries[99].cps; // 100th place score
+      const cutoff = currentEntries[99].cps;
       const myScore = Math.round(finalCPS * 100) / 100;
       if (myScore <= cutoff) {
         document.getElementById('modal-result-msg').textContent = `❌ Score too low for top 100. Beat ${cutoff.toFixed(2)} CPS to get on the board!`;
@@ -2444,9 +2493,18 @@ function updateGoalBar() {
   setTimeout(() => { barEl.style.width = pct + '%'; }, 100);
 }
 
+// Wire leaderboard tabs
+document.querySelectorAll('.lb-tab').forEach(tab => {
+  tab.addEventListener('click', function() {
+    document.querySelectorAll('.lb-tab').forEach(t => t.classList.remove('active'));
+    this.classList.add('active');
+    loadLeaderboard(+this.dataset.dur);
+  });
+});
+
 // Auto-refresh leaderboard every 15s
-loadLeaderboard();
-setInterval(loadLeaderboard, 15000);
+loadLeaderboard(5);
+setInterval(() => loadLeaderboard(), 15000);
 
 // Expose functions to global scope (required because type="module" is scoped)
 window.startGame = startGame;
