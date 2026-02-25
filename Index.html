@@ -2168,7 +2168,7 @@ updateCountdown();
 // ====== LEADERBOARD (Persistent Storage) ======
 // ====== FIREBASE LEADERBOARD ======
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
-import { getFirestore, collection, addDoc, query, where, orderBy, limit, getDocs, Timestamp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
+import { getFirestore, collection, addDoc, query, where, limit, getDocs, Timestamp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
 
 const firebaseConfig = {
   apiKey: "AIzaSyBp9KgjoTtCCugMlNNkJ8ehr3tW0pqNM64",
@@ -2194,20 +2194,21 @@ function getWeekStart() {
 
 async function loadLeaderboard() {
   try {
-    const weekStart = Timestamp.fromDate(getWeekStart());
+    const weekKey = getWeekStart().toISOString().split('T')[0]; // e.g. "2026-02-23"
     const q = query(
       collection(db, 'scores'),
-      where('weekStart', '>=', weekStart),
-      orderBy('weekStart', 'desc'),
-      orderBy('cps', 'desc'),
-      limit(50)
+      where('weekKey', '==', weekKey),
+      limit(100)
     );
     const snap = await getDocs(q);
-    const entries = snap.docs.map(d => d.data());
+    const entries = snap.docs
+      .map(d => d.data())
+      .sort((a, b) => b.cps - a.cps)
+      .slice(0, 50);
     renderLeaderboard(entries);
     return entries;
   } catch(err) {
-    console.error('Load error:', err);
+    console.error('LOAD ERROR:', err.code, err.message);
     renderLeaderboard([]);
     return [];
   }
@@ -2230,19 +2231,22 @@ async function submitScore() {
 
   try {
     const weekStart = Timestamp.fromDate(getWeekStart());
-    await addDoc(collection(db, 'scores'), {
+    const docData = {
       name: name.toUpperCase().substring(0, 20),
       cps: Math.round(finalCPS * 100) / 100,
       duration: duration,
       date: new Date().toISOString().split('T')[0],
       weekStart: weekStart,
+      weekKey: getWeekStart().toISOString().split('T')[0], // e.g. "2026-02-23" — simple string fallback
       ts: Timestamp.now()
-    });
+    };
+    console.log('Submitting score:', docData);
+    const docRef = await addDoc(collection(db, 'scores'), docData);
+    console.log('Score saved with ID:', docRef.id);
 
     submitted = true;
     btn.textContent = '✓ Submitted!';
 
-    // Reload leaderboard to get rank
     const entries = await loadLeaderboard();
     const rank = entries.findIndex(e =>
       e.name === name.toUpperCase().substring(0,20) &&
@@ -2252,8 +2256,8 @@ async function submitScore() {
       rank <= 3 ? `🔥 RANK #${rank} — INCREDIBLE!` : rank > 0 ? `You're ranked #${rank} this week!` : `Score submitted!`;
 
   } catch(err) {
-    console.error('Submit error:', err);
-    document.getElementById('modal-result-msg').textContent = 'Error submitting. Try again.';
+    console.error('SUBMIT ERROR:', err.code, err.message);
+    document.getElementById('modal-result-msg').textContent = `Error: ${err.code || err.message}`;
     btn.disabled = false;
     btn.textContent = 'Submit Score';
   }
