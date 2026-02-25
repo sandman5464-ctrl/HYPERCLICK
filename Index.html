@@ -116,7 +116,7 @@
   .header-right {
     display: flex;
     align-items: center;
-    gap: 30px;
+    gap: 20px;
   }
 
   .week-timer {
@@ -1068,6 +1068,444 @@
   @media (max-width: 900px) {
     .floating-donate { bottom: 16px; right: 16px; }
   }
+
+  /* ====== START SCREEN ====== */
+  #start-screen {
+    position: fixed;
+    inset: 0;
+    z-index: 8000;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    background: var(--bg);
+    overflow: hidden;
+  }
+
+  #start-screen.fade-out {
+    animation: screenFadeOut 0.8s ease-in-out forwards;
+  }
+  @keyframes screenFadeOut {
+    0% { opacity: 1; transform: scale(1); }
+    100% { opacity: 0; transform: scale(1.05); pointer-events: none; }
+  }
+
+  .ss-bg-rings {
+    position: absolute;
+    inset: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    pointer-events: none;
+  }
+  .ss-ring {
+    position: absolute;
+    border-radius: 50%;
+    border: 1px solid rgba(0,212,255,0.12);
+    animation: ssRingExpand 4s ease-out infinite;
+  }
+  .ss-ring:nth-child(1) { width: 300px; height: 300px; animation-delay: 0s; }
+  .ss-ring:nth-child(2) { width: 500px; height: 500px; animation-delay: 1s; }
+  .ss-ring:nth-child(3) { width: 700px; height: 700px; animation-delay: 2s; }
+  .ss-ring:nth-child(4) { width: 900px; height: 900px; animation-delay: 3s; }
+  @keyframes ssRingExpand {
+    0% { opacity: 0.4; transform: scale(0.8); }
+    100% { opacity: 0; transform: scale(1.3); }
+  }
+
+  .ss-content {
+    position: relative;
+    z-index: 2;
+    text-align: center;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 0;
+  }
+
+  .ss-eyebrow {
+    font-size: 10px;
+    letter-spacing: 8px;
+    color: var(--accent2);
+    text-transform: uppercase;
+    margin-bottom: 20px;
+    opacity: 0;
+    animation: ssFadeUp 0.8s ease-out 0.3s forwards;
+  }
+
+  .ss-title {
+    font-family: 'Orbitron', monospace;
+    font-weight: 900;
+    font-size: clamp(52px, 10vw, 110px);
+    line-height: 1;
+    background: linear-gradient(135deg, #fff 0%, var(--accent) 40%, var(--accent2) 100%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+    filter: drop-shadow(0 0 40px rgba(0,212,255,0.3));
+    opacity: 0;
+    animation: ssFadeUp 0.8s ease-out 0.5s forwards;
+    letter-spacing: -2px;
+  }
+
+  .ss-subtitle {
+    font-family: 'Orbitron', monospace;
+    font-size: clamp(11px, 2vw, 16px);
+    letter-spacing: 8px;
+    color: var(--accent);
+    margin-top: 12px;
+    margin-bottom: 50px;
+    opacity: 0;
+    animation: ssFadeUp 0.8s ease-out 0.7s forwards;
+  }
+
+  .ss-stats-row {
+    display: flex;
+    gap: 32px;
+    margin-bottom: 56px;
+    opacity: 0;
+    animation: ssFadeUp 0.8s ease-out 0.9s forwards;
+  }
+  .ss-stat {
+    text-align: center;
+  }
+  .ss-stat-val {
+    font-family: 'Orbitron', monospace;
+    font-size: 22px;
+    font-weight: 700;
+    color: var(--accent);
+  }
+  .ss-stat-label {
+    font-size: 9px;
+    letter-spacing: 3px;
+    color: var(--muted);
+    text-transform: uppercase;
+    margin-top: 4px;
+  }
+  .ss-divider {
+    width: 1px;
+    height: 40px;
+    background: rgba(0,212,255,0.2);
+    align-self: center;
+  }
+
+  .ss-start-btn {
+    position: relative;
+    background: transparent;
+    border: none;
+    cursor: pointer !important;
+    opacity: 0;
+    animation: ssFadeUp 0.8s ease-out 1.1s forwards;
+    outline: none;
+  }
+  .ss-start-btn-inner {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 14px;
+    background: linear-gradient(135deg, rgba(0,212,255,0.12), rgba(184,69,255,0.12));
+    border: 1px solid rgba(0,212,255,0.5);
+    border-radius: 60px;
+    padding: 18px 52px;
+    font-family: 'Orbitron', monospace;
+    font-size: 15px;
+    letter-spacing: 6px;
+    color: var(--accent);
+    text-transform: uppercase;
+    transition: all 0.25s;
+    box-shadow: 0 0 30px rgba(0,212,255,0.15), inset 0 0 30px rgba(0,212,255,0.05);
+  }
+  .ss-start-btn:hover .ss-start-btn-inner {
+    background: linear-gradient(135deg, rgba(0,212,255,0.22), rgba(184,69,255,0.18));
+    border-color: var(--accent);
+    box-shadow: 0 0 50px rgba(0,212,255,0.3), inset 0 0 40px rgba(0,212,255,0.1);
+    transform: scale(1.04);
+    color: #fff;
+  }
+  .ss-start-btn-pulse {
+    position: absolute;
+    inset: -4px;
+    border-radius: 64px;
+    border: 1px solid rgba(0,212,255,0.3);
+    animation: ssBtnPulse 2s ease-out infinite;
+  }
+  @keyframes ssBtnPulse {
+    0% { transform: scale(1); opacity: 0.6; }
+    100% { transform: scale(1.12); opacity: 0; }
+  }
+
+  .ss-hint {
+    margin-top: 20px;
+    font-size: 10px;
+    letter-spacing: 3px;
+    color: var(--muted);
+    text-transform: uppercase;
+    opacity: 0;
+    animation: ssFadeUp 0.8s ease-out 1.3s forwards;
+  }
+
+  .ss-music-note {
+    position: absolute;
+    bottom: 32px;
+    font-size: 10px;
+    letter-spacing: 3px;
+    color: var(--muted);
+    text-transform: uppercase;
+    opacity: 0;
+    animation: ssFadeUp 0.8s ease-out 1.5s forwards;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+  .ss-music-note::before {
+    content: '♫';
+    color: var(--accent2);
+  }
+
+  @keyframes ssFadeUp {
+    from { opacity: 0; transform: translateY(20px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+
+  /* Settings gear in header */
+  .settings-trigger {
+    background: rgba(0,212,255,0.07);
+    border: 1px solid rgba(0,212,255,0.18);
+    color: var(--muted);
+    width: 38px;
+    height: 38px;
+    border-radius: 8px;
+    cursor: pointer !important;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.2s;
+    flex-shrink: 0;
+  }
+  .settings-trigger svg { width: 17px; height: 17px; }
+  .settings-trigger:hover {
+    background: rgba(0,212,255,0.14);
+    border-color: var(--accent);
+    color: var(--accent);
+    box-shadow: var(--glow);
+  }
+  .settings-trigger.open {
+    background: rgba(0,212,255,0.14);
+    border-color: var(--accent);
+    color: var(--accent);
+    box-shadow: var(--glow);
+  }
+
+  /* Settings overlay backdrop */
+  .settings-overlay {
+    position: fixed;
+    inset: 0;
+    background: rgba(0,0,0,0.4);
+    backdrop-filter: blur(4px);
+    z-index: 6000;
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 0.3s;
+  }
+  .settings-overlay.open {
+    opacity: 1;
+    pointer-events: all;
+  }
+
+  /* Settings panel */
+  .settings-panel {
+    position: fixed;
+    top: 0;
+    right: 0;
+    width: 340px;
+    max-width: 95vw;
+    height: 100vh;
+    background: linear-gradient(180deg, rgba(6,14,36,0.98) 0%, rgba(10,6,28,0.98) 100%);
+    border-left: 1px solid rgba(0,212,255,0.15);
+    z-index: 6100;
+    transform: translateX(100%);
+    transition: transform 0.35s cubic-bezier(0.4,0,0.2,1);
+    display: flex;
+    flex-direction: column;
+    overflow-y: auto;
+    box-shadow: -20px 0 60px rgba(0,0,0,0.5);
+  }
+  .settings-panel.open {
+    transform: translateX(0);
+  }
+  .settings-panel::-webkit-scrollbar { width: 3px; }
+  .settings-panel::-webkit-scrollbar-thumb { background: rgba(0,212,255,0.2); border-radius: 2px; }
+
+  .sp-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 28px 28px 20px;
+    border-bottom: 1px solid rgba(0,212,255,0.1);
+    position: sticky;
+    top: 0;
+    background: rgba(6,14,36,0.98);
+    backdrop-filter: blur(10px);
+    z-index: 1;
+  }
+  .sp-title {
+    font-family: 'Orbitron', monospace;
+    font-size: 14px;
+    letter-spacing: 5px;
+    color: var(--accent);
+    text-transform: uppercase;
+  }
+  .sp-close {
+    background: rgba(255,255,255,0.05);
+    border: 1px solid rgba(255,255,255,0.1);
+    color: var(--muted);
+    width: 32px;
+    height: 32px;
+    border-radius: 6px;
+    cursor: pointer !important;
+    font-size: 13px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.2s;
+  }
+  .sp-close:hover { color: var(--text); border-color: rgba(255,255,255,0.2); }
+
+  .sp-section {
+    padding: 24px 28px;
+    border-bottom: 1px solid rgba(0,212,255,0.06);
+  }
+  .sp-section-label {
+    font-size: 9px;
+    letter-spacing: 4px;
+    color: var(--accent2);
+    text-transform: uppercase;
+    margin-bottom: 18px;
+  }
+
+  .sp-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 16px;
+    padding: 10px 0;
+    border-bottom: 1px solid rgba(255,255,255,0.03);
+  }
+  .sp-row:last-child { border-bottom: none; }
+  .sp-row-info { flex: 1; min-width: 0; }
+  .sp-row-name {
+    font-size: 14px;
+    font-weight: 600;
+    color: var(--text);
+    letter-spacing: 0.5px;
+  }
+  .sp-row-desc {
+    font-size: 11px;
+    color: var(--muted);
+    margin-top: 2px;
+    letter-spacing: 0.3px;
+  }
+
+  /* Toggle switch */
+  .sp-toggle {
+    width: 42px;
+    height: 24px;
+    background: rgba(255,255,255,0.08);
+    border: 1px solid rgba(255,255,255,0.12);
+    border-radius: 12px;
+    cursor: pointer !important;
+    position: relative;
+    flex-shrink: 0;
+    transition: background 0.25s, border-color 0.25s, box-shadow 0.25s;
+  }
+  .sp-toggle[data-on="true"] {
+    background: rgba(0,212,255,0.2);
+    border-color: var(--accent);
+    box-shadow: 0 0 12px rgba(0,212,255,0.25);
+  }
+  .sp-toggle-knob {
+    position: absolute;
+    top: 3px;
+    left: 3px;
+    width: 16px;
+    height: 16px;
+    background: rgba(255,255,255,0.4);
+    border-radius: 50%;
+    transition: transform 0.25s cubic-bezier(0.34,1.56,0.64,1), background 0.25s;
+  }
+  .sp-toggle[data-on="true"] .sp-toggle-knob {
+    transform: translateX(18px);
+    background: var(--accent);
+    box-shadow: 0 0 8px rgba(0,212,255,0.6);
+  }
+
+  /* Range slider */
+  .sp-slider {
+    -webkit-appearance: none;
+    appearance: none;
+    width: 110px;
+    height: 3px;
+    background: rgba(0,212,255,0.15);
+    border-radius: 2px;
+    outline: none;
+    cursor: pointer !important;
+    flex-shrink: 0;
+    border: none;
+  }
+  .sp-slider::-webkit-slider-thumb {
+    -webkit-appearance: none;
+    width: 14px;
+    height: 14px;
+    border-radius: 50%;
+    background: var(--accent);
+    cursor: pointer;
+    box-shadow: 0 0 8px rgba(0,212,255,0.5);
+  }
+  .sp-slider::-moz-range-thumb {
+    width: 14px;
+    height: 14px;
+    border-radius: 50%;
+    background: var(--accent);
+    cursor: pointer;
+    border: none;
+    box-shadow: 0 0 8px rgba(0,212,255,0.5);
+  }
+
+  .sp-about {
+    text-align: center;
+    padding: 8px 0 4px;
+  }
+  .sp-about-title {
+    font-family: 'Orbitron', monospace;
+    font-size: 18px;
+    font-weight: 900;
+    background: linear-gradient(90deg, var(--accent), var(--accent2));
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+    letter-spacing: 3px;
+    margin-bottom: 4px;
+  }
+  .sp-about-sub {
+    font-size: 10px;
+    letter-spacing: 3px;
+    color: var(--muted);
+    text-transform: uppercase;
+    margin-bottom: 14px;
+  }
+  .sp-about-text {
+    font-size: 13px;
+    color: var(--muted);
+    line-height: 1.7;
+  }
+
+  /* Performance mode — disable heavy animations */
+  body.perf-mode .ring,
+  body.perf-mode .ss-ring,
+  body.perf-mode #bg-canvas,
+  body.perf-mode #ss-canvas { display: none !important; }
+  body.perf-mode .click-btn { animation: none !important; }
+  body.perf-mode * { transition-duration: 0.05s !important; }
 </style>
 </head>
 <body>
@@ -1075,6 +1513,140 @@
 <div id="cursor-dot"></div>
 <canvas id="bg-canvas"></canvas>
 <div class="scanlines"></div>
+
+<!-- Start Screen -->
+<div id="start-screen">
+  <div class="ss-bg-rings">
+    <div class="ss-ring"></div>
+    <div class="ss-ring"></div>
+    <div class="ss-ring"></div>
+    <div class="ss-ring"></div>
+  </div>
+  <canvas id="ss-canvas" style="position:absolute;inset:0;width:100%;height:100%;opacity:0.5;pointer-events:none;"></canvas>
+  <div class="ss-content">
+    <div class="ss-eyebrow">How fast are you?</div>
+    <div class="ss-title">HYPER<br>CLICK</div>
+    <div class="ss-subtitle">Clicks Per Second</div>
+    <div class="ss-stats-row">
+      <div class="ss-stat">
+        <div class="ss-stat-val">5</div>
+        <div class="ss-stat-label">Test Modes</div>
+      </div>
+      <div class="ss-divider"></div>
+      <div class="ss-stat">
+        <div class="ss-stat-val">50</div>
+        <div class="ss-stat-label">Top Scores</div>
+      </div>
+      <div class="ss-divider"></div>
+      <div class="ss-stat">
+        <div class="ss-stat-val">LIVE</div>
+        <div class="ss-stat-label">Leaderboard</div>
+      </div>
+    </div>
+    <button class="ss-start-btn" onclick="startGame()">
+      <div class="ss-start-btn-pulse"></div>
+      <div class="ss-start-btn-inner">
+        <span>▶</span> PLAY NOW
+      </div>
+    </button>
+    <div class="ss-hint">Click or press Space to start</div>
+  </div>
+  <div class="ss-music-note">Music will play on start</div>
+</div>
+
+<!-- Settings Panel -->
+<div class="settings-overlay" id="settings-overlay" onclick="closeSettingsOutside(event)"></div>
+<div class="settings-panel" id="settings-panel">
+  <div class="sp-header">
+    <div class="sp-title">Settings</div>
+    <button class="sp-close" onclick="toggleSettings()">✕</button>
+  </div>
+
+  <div class="sp-section">
+    <div class="sp-section-label">Audio</div>
+    <div class="sp-row">
+      <div class="sp-row-info">
+        <div class="sp-row-name">Music</div>
+        <div class="sp-row-desc">Ambient background music</div>
+      </div>
+      <div class="sp-toggle" id="toggle-music" onclick="settingToggle('music')" data-on="true">
+        <div class="sp-toggle-knob"></div>
+      </div>
+    </div>
+    <div class="sp-row">
+      <div class="sp-row-info">
+        <div class="sp-row-name">Sound Effects</div>
+        <div class="sp-row-desc">Click sounds on every tap</div>
+      </div>
+      <div class="sp-toggle" id="toggle-sfx" onclick="settingToggle('sfx')" data-on="true">
+        <div class="sp-toggle-knob"></div>
+      </div>
+    </div>
+    <div class="sp-row">
+      <div class="sp-row-info">
+        <div class="sp-row-name">Music Volume</div>
+        <div class="sp-row-desc">Adjust background music level</div>
+      </div>
+      <input type="range" class="sp-slider" id="slider-music-vol" min="0" max="100" value="30" oninput="setMusicVolume(this.value)">
+    </div>
+    <div class="sp-row">
+      <div class="sp-row-info">
+        <div class="sp-row-name">SFX Volume</div>
+        <div class="sp-row-desc">Adjust click sound level</div>
+      </div>
+      <input type="range" class="sp-slider" id="slider-sfx-vol" min="0" max="100" value="50" oninput="setSfxVolume(this.value)">
+    </div>
+  </div>
+
+  <div class="sp-section">
+    <div class="sp-section-label">Display</div>
+    <div class="sp-row">
+      <div class="sp-row-info">
+        <div class="sp-row-name">Performance Mode</div>
+        <div class="sp-row-desc">Reduce animations for low-end devices</div>
+      </div>
+      <div class="sp-toggle" id="toggle-perf" onclick="settingToggle('perf')" data-on="false">
+        <div class="sp-toggle-knob"></div>
+      </div>
+    </div>
+    <div class="sp-row">
+      <div class="sp-row-info">
+        <div class="sp-row-name">Custom Cursor</div>
+        <div class="sp-row-desc">Show futuristic cursor style</div>
+      </div>
+      <div class="sp-toggle" id="toggle-cursor" onclick="settingToggle('cursor')" data-on="true">
+        <div class="sp-toggle-knob"></div>
+      </div>
+    </div>
+    <div class="sp-row">
+      <div class="sp-row-info">
+        <div class="sp-row-name">+1 Particles</div>
+        <div class="sp-row-desc">Show click burst effects</div>
+      </div>
+      <div class="sp-toggle" id="toggle-particles" onclick="settingToggle('particles')" data-on="true">
+        <div class="sp-toggle-knob"></div>
+      </div>
+    </div>
+    <div class="sp-row">
+      <div class="sp-row-info">
+        <div class="sp-row-name">Scanlines</div>
+        <div class="sp-row-desc">Retro CRT scanline overlay</div>
+      </div>
+      <div class="sp-toggle" id="toggle-scanlines" onclick="settingToggle('scanlines')" data-on="true">
+        <div class="sp-toggle-knob"></div>
+      </div>
+    </div>
+  </div>
+
+  <div class="sp-section">
+    <div class="sp-section-label">About</div>
+    <div class="sp-about">
+      <div class="sp-about-title">HYPERCLICK</div>
+      <div class="sp-about-sub">Clicks Per Second Trainer</div>
+      <div class="sp-about-text">Test and improve your clicking speed. Compete on the weekly live leaderboard. Scores reset every Monday.</div>
+    </div>
+  </div>
+</div>
 
 <div class="app">
   <header>
@@ -1087,6 +1659,12 @@
         <div class="label">Leaderboard resets in</div>
         <div class="time" id="week-countdown">—</div>
       </div>
+      <button class="settings-trigger" id="settings-trigger" onclick="toggleSettings()">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+          <circle cx="12" cy="12" r="3"/>
+          <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/>
+        </svg>
+      </button>
     </div>
   </header>
 
@@ -1406,6 +1984,7 @@ function handleClick(e) {
   const btnCX = btnRect.left + btnRect.width / 2;
   const btnCY = btnRect.top + btnRect.height / 2;
   spawnParticle(btnCX, btnCY);
+  playClickSound();
 
   // Add canvas burst particles from button center too
   for (let i = 0; i < 3; i++) {
@@ -1422,6 +2001,7 @@ function handleClick(e) {
 }
 
 function spawnParticle(x, y) {
+  if (!settings.particles) return;
   const el = document.createElement('div');
   el.className = 'click-particle';
   const angle = Math.random() * Math.PI * 2;
@@ -1549,6 +2129,7 @@ function resetGame() {
 document.addEventListener('keydown', e => {
   if (e.code === 'Space' && !e.target.matches('input')) {
     e.preventDefault();
+    if (!gameStarted) return; // handled by start screen listener
     if (e.repeat) return; // ignore held-down key repeat
     if (testDone) return;
     const btnRect = clickBtn.getBoundingClientRect();
@@ -1690,6 +2271,284 @@ function renderLeaderboard(entries) {
 // Auto-refresh leaderboard every 15s
 loadLeaderboard();
 setInterval(loadLeaderboard, 15000);
+
+// ====== START SCREEN ======
+let gameStarted = false;
+
+// Start screen canvas particles (same style as bg)
+const ssCanvas = document.getElementById('ss-canvas');
+const ssCtx = ssCanvas.getContext('2d');
+let ssParticles = [];
+
+function initSSCanvas() {
+  ssCanvas.width = window.innerWidth;
+  ssCanvas.height = window.innerHeight;
+  ssParticles = [];
+  for (let i = 0; i < 80; i++) {
+    ssParticles.push({
+      x: Math.random() * ssCanvas.width,
+      y: Math.random() * ssCanvas.height,
+      vx: (Math.random()-0.5)*0.4, vy: (Math.random()-0.5)*0.4,
+      r: Math.random() * 1.5 + 0.3,
+      c: Math.random() > 0.5 ? 'rgba(0,212,255,' : 'rgba(184,69,255,'
+    });
+  }
+}
+initSSCanvas();
+window.addEventListener('resize', initSSCanvas);
+
+let ssT = 0;
+function drawSSBg() {
+  if (gameStarted) return;
+  ssCtx.clearRect(0, 0, ssCanvas.width, ssCanvas.height);
+  ssT += 0.004;
+  ssParticles.forEach(p => {
+    p.x += p.vx; p.y += p.vy;
+    if (p.x < 0) p.x = ssCanvas.width; if (p.x > ssCanvas.width) p.x = 0;
+    if (p.y < 0) p.y = ssCanvas.height; if (p.y > ssCanvas.height) p.y = 0;
+    const a = 0.4 + 0.4*Math.sin(ssT*2 + p.x);
+    ssCtx.beginPath();
+    ssCtx.arc(p.x, p.y, p.r, 0, Math.PI*2);
+    ssCtx.fillStyle = p.c + a + ')';
+    ssCtx.fill();
+  });
+  requestAnimationFrame(drawSSBg);
+}
+drawSSBg();
+
+// Allow spacebar to start the game from start screen
+document.addEventListener('keydown', e => {
+  if (e.code === 'Space' && !gameStarted && !e.repeat) {
+    e.preventDefault();
+    startGame();
+  }
+});
+
+function startGame() {
+  if (gameStarted) return;
+  gameStarted = true;
+  const ss = document.getElementById('start-screen');
+  ss.classList.add('fade-out');
+  setTimeout(() => { ss.style.display = 'none'; }, 800);
+  initAudio();
+}
+
+// ====== AUDIO ENGINE (Web Audio API — no external files) ======
+let audioCtx = null;
+let musicGain = null;
+let sfxGain = null;
+let musicPlaying = false;
+let musicMuted = false;
+let musicNodes = [];
+
+function initAudio() {
+  try {
+    audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+    musicGain = audioCtx.createGain();
+    musicGain.gain.setValueAtTime(0.08, audioCtx.currentTime); // Very quiet
+    musicGain.connect(audioCtx.destination);
+
+    sfxGain = audioCtx.createGain();
+    sfxGain.gain.setValueAtTime(0.18, audioCtx.currentTime);
+    sfxGain.connect(audioCtx.destination);
+
+    startAmbientMusic();
+  } catch(e) {
+    console.log('Audio not supported');
+  }
+}
+
+function startAmbientMusic() {
+  if (!audioCtx || musicPlaying) return;
+  musicPlaying = true;
+  scheduleMusicLoop();
+}
+
+// Minimal ambient pad — slowly cycling notes, very chill
+const SCALE = [65.41, 73.42, 82.41, 87.31, 98.00, 110.0, 130.8, 146.8]; // C2 minor-ish scale
+let musicStep = 0;
+let nextNoteTime = 0;
+
+function scheduleMusicLoop() {
+  if (!audioCtx || musicMuted) return;
+
+  const now = audioCtx.currentTime;
+  if (nextNoteTime < now) nextNoteTime = now + 0.1;
+
+  // Schedule a few notes ahead
+  while (nextNoteTime < now + 1.5) {
+    scheduleNote(nextNoteTime);
+    nextNoteTime += 0.52 + Math.random() * 0.3; // slightly irregular timing
+    musicStep++;
+  }
+
+  setTimeout(scheduleMusicLoop, 500);
+}
+
+function scheduleNote(time) {
+  if (!audioCtx || musicMuted) return;
+
+  // Pick a note from the scale — use a gentle pattern
+  const idx = (musicStep * 3 + Math.floor(musicStep / 4)) % SCALE.length;
+  const freq = SCALE[idx] * (Math.random() > 0.7 ? 2 : 1); // occasionally jump an octave
+
+  const osc = audioCtx.createOscillator();
+  const envGain = audioCtx.createGain();
+  const filter = audioCtx.createBiquadFilter();
+
+  osc.type = 'sine';
+  osc.frequency.setValueAtTime(freq, time);
+
+  filter.type = 'lowpass';
+  filter.frequency.setValueAtTime(600 + Math.random()*200, time);
+  filter.Q.value = 0.5;
+
+  // Soft attack, long release — pad-like
+  envGain.gain.setValueAtTime(0, time);
+  envGain.gain.linearRampToValueAtTime(0.7, time + 0.3);
+  envGain.gain.exponentialRampToValueAtTime(0.001, time + 2.5);
+
+  osc.connect(filter);
+  filter.connect(envGain);
+  envGain.connect(musicGain);
+
+  osc.start(time);
+  osc.stop(time + 2.8);
+
+  // Add a subtle low drone that slowly pulses
+  if (musicStep % 8 === 0) {
+    const drone = audioCtx.createOscillator();
+    const droneGain = audioCtx.createGain();
+    drone.type = 'triangle';
+    drone.frequency.setValueAtTime(32.7, time); // C1 bass
+    droneGain.gain.setValueAtTime(0, time);
+    droneGain.gain.linearRampToValueAtTime(0.5, time + 1);
+    droneGain.gain.exponentialRampToValueAtTime(0.001, time + 4);
+    drone.connect(droneGain);
+    droneGain.connect(musicGain);
+    drone.start(time);
+    drone.stop(time + 4.5);
+  }
+}
+
+function playClickSound() {
+  if (!audioCtx || !sfxGain) return;
+  try {
+    const now = audioCtx.currentTime;
+
+    // Crisp short click: layered sine + noise burst
+    const osc = audioCtx.createOscillator();
+    const g = audioCtx.createGain();
+    osc.type = 'sine';
+    osc.frequency.setValueAtTime(1200, now);
+    osc.frequency.exponentialRampToValueAtTime(400, now + 0.04);
+    g.gain.setValueAtTime(0.6, now);
+    g.gain.exponentialRampToValueAtTime(0.001, now + 0.07);
+    osc.connect(g);
+    g.connect(sfxGain);
+    osc.start(now);
+    osc.stop(now + 0.08);
+
+    // Tiny high tick for crispness
+    const tick = audioCtx.createOscillator();
+    const tg = audioCtx.createGain();
+    tick.type = 'square';
+    tick.frequency.setValueAtTime(3000, now);
+    tg.gain.setValueAtTime(0.08, now);
+    tg.gain.exponentialRampToValueAtTime(0.001, now + 0.025);
+    tick.connect(tg);
+    tg.connect(sfxGain);
+    tick.start(now);
+    tick.stop(now + 0.03);
+  } catch(e) {}
+}
+
+function toggleMusic() {
+  settingToggle('music');
+}
+
+// ====== SETTINGS PANEL ======
+const settings = {
+  music: true,
+  sfx: true,
+  perf: false,
+  cursor: true,
+  particles: true,
+  scanlines: true
+};
+
+function toggleSettings() {
+  const panel = document.getElementById('settings-panel');
+  const overlay = document.getElementById('settings-overlay');
+  const trigger = document.getElementById('settings-trigger');
+  const isOpen = panel.classList.contains('open');
+  if (isOpen) {
+    panel.classList.remove('open');
+    overlay.classList.remove('open');
+    trigger.classList.remove('open');
+  } else {
+    panel.classList.add('open');
+    overlay.classList.add('open');
+    trigger.classList.add('open');
+  }
+}
+
+function closeSettingsOutside(e) {
+  if (e.target === document.getElementById('settings-overlay')) {
+    toggleSettings();
+  }
+}
+
+function settingToggle(key) {
+  settings[key] = !settings[key];
+  const el = document.getElementById('toggle-' + key);
+  if (el) el.dataset.on = settings[key].toString();
+  applySettings(key);
+}
+
+function applySettings(key) {
+  if (!audioCtx) return;
+  if (key === 'music') {
+    musicMuted = !settings.music;
+    if (musicMuted) {
+      musicGain.gain.setTargetAtTime(0, audioCtx.currentTime, 0.3);
+    } else {
+      const vol = document.getElementById('slider-music-vol').value / 100 * 0.18;
+      musicGain.gain.setTargetAtTime(vol, audioCtx.currentTime, 0.3);
+      scheduleMusicLoop();
+    }
+  }
+  if (key === 'sfx') {
+    sfxGain.gain.setTargetAtTime(settings.sfx ? document.getElementById('slider-sfx-vol').value / 100 * 0.4 : 0, audioCtx.currentTime, 0.1);
+  }
+  if (key === 'perf') {
+    document.body.classList.toggle('perf-mode', settings.perf);
+  }
+  if (key === 'cursor') {
+    document.getElementById('cursor').style.display = settings.cursor ? 'block' : 'none';
+    document.getElementById('cursor-dot').style.display = settings.cursor ? 'block' : 'none';
+    document.body.style.cursor = settings.cursor ? 'none' : 'auto';
+  }
+  if (key === 'particles') {
+    // particles toggled in spawnParticle()
+  }
+  if (key === 'scanlines') {
+    document.querySelector('.scanlines').style.display = settings.scanlines ? 'block' : 'none';
+  }
+}
+
+function setMusicVolume(val) {
+  if (!audioCtx || !musicGain || musicMuted) return;
+  const vol = val / 100 * 0.18;
+  musicGain.gain.setTargetAtTime(vol, audioCtx.currentTime, 0.1);
+}
+
+function setSfxVolume(val) {
+  if (!audioCtx || !sfxGain) return;
+  if (!settings.sfx) return;
+  const vol = val / 100 * 0.4;
+  sfxGain.gain.setTargetAtTime(vol, audioCtx.currentTime, 0.1);
+}
 </script>
 </body>
 </html>
