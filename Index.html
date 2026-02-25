@@ -1534,12 +1534,12 @@
       </div>
       <div class="ss-divider"></div>
       <div class="ss-stat">
-        <div class="ss-stat-val">50</div>
+        <div class="ss-stat-val">100</div>
         <div class="ss-stat-label">Top Scores</div>
       </div>
       <div class="ss-divider"></div>
       <div class="ss-stat">
-        <div class="ss-stat-val">LIVE</div>
+        <div class="ss-stat-val">DAILY</div>
         <div class="ss-stat-label">Leaderboard</div>
       </div>
     </div>
@@ -1643,7 +1643,7 @@
     <div class="sp-about">
       <div class="sp-about-title">HYPERCLICK</div>
       <div class="sp-about-sub">Clicks Per Second Trainer</div>
-      <div class="sp-about-text">Test and improve your clicking speed. Compete on the weekly live leaderboard. Scores reset every Monday.</div>
+      <div class="sp-about-text">Test and improve your clicking speed. Compete on the daily live leaderboard. Scores reset every midnight UTC.</div>
     </div>
   </div>
 </div>
@@ -1730,13 +1730,13 @@
   <aside class="leaderboard-panel">
     <div class="lb-header">
       <div class="lb-title"><span class="lb-live-dot"></span>Live Leaderboard</div>
-      <div class="lb-subtitle">Weekly Top Scores — Resets Every Monday</div>
+      <div class="lb-subtitle">Daily Top Scores — Resets Every Midnight UTC</div>
     </div>
     <div class="lb-list" id="lb-list">
       <div class="lb-empty">Loading scores...</div>
     </div>
     <div class="lb-footer">
-      <div class="lb-reset-info">Resets Monday 00:00 UTC</div>
+      <div class="lb-reset-info">Resets daily at midnight UTC</div>
       <div class="lb-entries-count" id="lb-count">— entries</div>
     </div>
   </aside>
@@ -2146,24 +2146,21 @@ document.addEventListener('keydown', e => {
   }
 });
 
-// ====== WEEK COUNTDOWN ======
-function getWeekReset() {
+// ====== DAILY COUNTDOWN ======
+function getDayReset() {
   const now = new Date();
-  const utcDay = now.getUTCDay(); // 0=Sun, 1=Mon
-  const daysToMonday = utcDay === 0 ? 1 : (8 - utcDay);
-  const reset = new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), now.getUTCDate() + daysToMonday));
+  const reset = new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), now.getUTCDate() + 1));
   return reset;
 }
 
 function updateCountdown() {
-  const reset = getWeekReset();
+  const reset = getDayReset();
   const diff = reset - new Date();
-  const d = Math.floor(diff/86400000);
-  const h = Math.floor((diff%86400000)/3600000);
+  const h = Math.floor(diff/3600000);
   const m = Math.floor((diff%3600000)/60000);
   const s = Math.floor((diff%60000)/1000);
   document.getElementById('week-countdown').textContent =
-    `${d}d ${String(h).padStart(2,'0')}:${String(m).padStart(2,'0')}:${String(s).padStart(2,'0')}`;
+    `${String(h).padStart(2,'0')}:${String(m).padStart(2,'0')}:${String(s).padStart(2,'0')}`;
 }
 setInterval(updateCountdown, 1000);
 updateCountdown();
@@ -2186,28 +2183,24 @@ const firebaseConfig = {
 const fbApp = initializeApp(firebaseConfig);
 const db = getFirestore(fbApp);
 
-function getWeekStart() {
-  const now = new Date();
-  const day = now.getUTCDay(); // 0=Sun,1=Mon
-  const diff = (day === 0 ? -6 : 1 - day);
-  const monday = new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), now.getUTCDate() + diff));
-  monday.setUTCHours(0,0,0,0);
-  return monday;
+function getDayKey() {
+  // Returns today's UTC date string e.g. "2026-02-25" — resets every midnight UTC
+  return new Date().toISOString().split('T')[0];
 }
 
 async function loadLeaderboard() {
   try {
-    const weekKey = getWeekStart().toISOString().split('T')[0]; // e.g. "2026-02-23"
+    const dayKey = getDayKey();
     const q = query(
       collection(db, 'scores'),
-      where('weekKey', '==', weekKey),
-      limit(100)
+      where('dayKey', '==', dayKey),
+      limit(500)
     );
     const snap = await getDocs(q);
     const entries = snap.docs
       .map(d => d.data())
       .sort((a, b) => b.cps - a.cps)
-      .slice(0, 50);
+      .slice(0, 100);
     renderLeaderboard(entries);
     return entries;
   } catch(err) {
@@ -2270,14 +2263,45 @@ async function submitScore() {
   document.getElementById('modal-result-msg').style.color = 'var(--accent2)';
 
   try {
-    const weekStart = Timestamp.fromDate(getWeekStart());
+    const dayKey = getDayKey();
+
+    // Check how many entries this name has submitted today (max 5)
+    const nameUpper = name.toUpperCase().substring(0, 20);
+    const countQ = query(
+      collection(db, 'scores'),
+      where('dayKey', '==', dayKey),
+      where('name', '==', nameUpper),
+      limit(6)
+    );
+    const countSnap = await getDocs(countQ);
+    if (countSnap.size >= 5) {
+      document.getElementById('modal-result-msg').textContent = '⚠ Max 5 entries per day reached for this name.';
+      document.getElementById('modal-result-msg').style.color = 'var(--accent3)';
+      btn.disabled = false;
+      btn.textContent = 'Submit Score';
+      return;
+    }
+
+    // Check if score is good enough to crack the top 100
+    const currentEntries = await loadLeaderboard();
+    if (currentEntries.length >= 100) {
+      const cutoff = currentEntries[99].cps; // 100th place score
+      const myScore = Math.round(finalCPS * 100) / 100;
+      if (myScore <= cutoff) {
+        document.getElementById('modal-result-msg').textContent = `❌ Score too low for top 100. Beat ${cutoff.toFixed(2)} CPS to get on the board!`;
+        document.getElementById('modal-result-msg').style.color = 'var(--accent3)';
+        btn.disabled = false;
+        btn.textContent = 'Submit Score';
+        return;
+      }
+    }
+
     const docData = {
-      name: name.toUpperCase().substring(0, 20),
+      name: nameUpper,
       cps: Math.round(finalCPS * 100) / 100,
       duration: duration,
       date: new Date().toISOString().split('T')[0],
-      weekStart: weekStart,
-      weekKey: getWeekStart().toISOString().split('T')[0],
+      dayKey: dayKey,
       ts: Timestamp.now()
     };
     console.log('Submitting score:', docData);
@@ -2294,7 +2318,7 @@ async function submitScore() {
       e.cps === Math.round(finalCPS * 100) / 100
     ) + 1;
     document.getElementById('modal-result-msg').textContent =
-      rank <= 3 ? `🔥 RANK #${rank} — INCREDIBLE!` : rank > 0 ? `You're ranked #${rank} this week!` : `Score submitted!`;
+      rank <= 3 ? `🔥 RANK #${rank} — INCREDIBLE!` : rank > 0 ? `You're ranked #${rank} today!` : `Score submitted!`;
 
   } catch(err) {
     console.error('SUBMIT ERROR:', err.code, err.message);
@@ -2307,10 +2331,10 @@ async function submitScore() {
 function renderLeaderboard(entries) {
   const list = document.getElementById('lb-list');
   const countEl = document.getElementById('lb-count');
-  countEl.textContent = `${entries.length} / 50 entries`;
+  countEl.textContent = `${entries.length} / 100 entries`;
 
   if (!entries.length) {
-    list.innerHTML = '<div class="lb-empty">No scores yet this week.<br>Be the first!</div>';
+    list.innerHTML = '<div class="lb-empty">No scores yet today.<br>Be the first!</div>';
     return;
   }
 
