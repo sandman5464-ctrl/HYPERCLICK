@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState, type FormEvent } from "react";
+import { useEffect, useRef, useState, type FormEvent } from "react";
 import { isAccentHex } from "@/lib/brand";
 
 type Phase =
@@ -22,6 +22,7 @@ export function BrandStudio() {
   const [vibes, setVibes] = useState<[string, string, string]>(["", "", ""]);
   const [accent, setAccent] = useState("#E7D7C1");
   const [phase, setPhase] = useState<Phase>({ kind: "idle" });
+  const statusRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     if (!product) {
@@ -42,6 +43,11 @@ export function BrandStudio() {
     setLogoUrl(url);
     return () => URL.revokeObjectURL(url);
   }, [logo]);
+
+  useEffect(() => {
+    if (phase.kind === "idle") return;
+    statusRef.current?.scrollIntoView({ behavior: "smooth", block: "center" });
+  }, [phase]);
 
   const accentValid = isAccentHex(accent.trim());
   const ready =
@@ -286,7 +292,7 @@ export function BrandStudio() {
         Generate
       </button>
 
-      <div className="mt-10" aria-live="polite">
+      <div ref={statusRef} className="mt-10 scroll-mt-16" aria-live="polite">
         {phase.kind === "still" || phase.kind === "motion" ? <Loading phase={phase.kind} /> : null}
         {phase.kind === "error" ? (
           <p role="alert" className="text-center text-[14px] leading-relaxed text-danger">
