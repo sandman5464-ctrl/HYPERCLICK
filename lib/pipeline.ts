@@ -142,6 +142,7 @@ export async function generateVideo(input: {
       resolution: VERTICAL.resolution,
       duration: VERTICAL.durationSeconds,
       aspect_ratio: VERTICAL.aspectRatio,
+      // v1 is a silent picture. Do not add a voice or music bed here.
       generate_audio: false,
     },
   });
